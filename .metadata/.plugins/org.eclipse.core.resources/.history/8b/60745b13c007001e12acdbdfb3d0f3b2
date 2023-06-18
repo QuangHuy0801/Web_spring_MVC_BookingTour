@@ -1,0 +1,42 @@
+package QLXB.entity;
+
+import java.util.Date;
+import java.util.List;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+
+@Entity
+@Table(name="DOANHTHUNGAY")
+public class DoanhThuNgay {
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name="ID")
+	private  int id;
+	@Column(name="SOVEHSSV")
+	private  int soVeHSSV;
+	@Column(name="SOVEBT")
+	private  int soVeBT;
+	@Column(name="SOVEBT")
+	private  Date ngay;
+	
+	@OneToMany(mappedBy = "doanhThuNgay", fetch = FetchType.EAGER) 
+	  private List<DoanhThuTram> doanhThuTrams;
+	@ManyToOne()
+	  @JoinColumn(name="IDTD") 
+	 private TuyenDuong tuyenDuong;
+	@ManyToOne()
+	  @JoinColumn(name="IDGV") 
+	 private GiaVe giaVe;
+	
+	
+}

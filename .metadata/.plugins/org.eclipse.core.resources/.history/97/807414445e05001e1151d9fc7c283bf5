@@ -1,0 +1,5 @@
+package BOOKINGTOUR.interceptor;
+
+public class LoggerInterceptor {
+
+}

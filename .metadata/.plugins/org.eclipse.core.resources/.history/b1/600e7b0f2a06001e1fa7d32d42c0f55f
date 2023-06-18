@@ -1,0 +1,95 @@
+package QLXB.entity;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+
+@Entity
+@Table(name="TUYENDUONG")
+public class TuyenDuong {
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name="ID")
+	private  int id;
+	@Column(name = "TEN")
+	private  String ten;
+	@Column(name = "GIANCACH")
+	private  String gianCach;
+	@Column(name = "THOIGIANHD")
+	private  String thoiGianHD;
+	@Column(name = "THOIGIANCHUYEN")
+	private  String thoiGianChuyen;
+	@Column(name = "CULY")
+	private  float cuLy;
+	
+	 @ManyToOne()
+	  @JoinColumn(name="MANVTAO") 
+	 private NhanVien nhanVienTD;
+
+	public int getId() {
+		return id;
+	}
+
+	public void setId(int id) {
+		this.id = id;
+	}
+
+	public String getTen() {
+		return ten;
+	}
+
+	public void setTen(String ten) {
+		this.ten = ten;
+	}
+
+	public String getGianCach() {
+		return gianCach;
+	}
+
+	public void setGianCach(String gianCach) {
+		this.gianCach = gianCach;
+	}
+
+	public String getThoiGianHD() {
+		return thoiGianHD;
+	}
+
+	public void setThoiGianHD(String thoiGianHD) {
+		this.thoiGianHD = thoiGianHD;
+	}
+
+	public String getThoiGianChuyen() {
+		return thoiGianChuyen;
+	}
+
+	public void setThoiGianChuyen(String thoiGianChuyen) {
+		this.thoiGianChuyen = thoiGianChuyen;
+	}
+
+
+
+	public float getCuLy() {
+		return cuLy;
+	}
+
+	public void setCuLy(float cuLy) {
+		this.cuLy = cuLy;
+	}
+
+	public NhanVien getNhanVienTD() {
+		return nhanVienTD;
+	}
+
+	public void setNhanVienTD(NhanVien nhanVienTD) {
+		this.nhanVienTD = nhanVienTD;
+	}
+	 
+	 
+	
+
+}

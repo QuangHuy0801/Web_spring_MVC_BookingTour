@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<section name="Workbench">
+	<section name="org.eclipse.ui.texteditor.FindReplaceDialog">
+		<item key="wrap" value="true"/>
+		<item key="casesensitive" value="false"/>
+		<item key="wholeword" value="false"/>
+		<item key="incremental" value="false"/>
+		<item key="isRegEx" value="false"/>
+		<item key="selection" value=""/>
+		<list key="findhistory">
+			<item value="chen"/>
+			<item value="doi"/>
+			<item value="doim"/>
+			<item value="login"/>
+			<item value="&#x09;&#x09;    JsonReader jsonReader = Json.createReader(new StringReader(response.toString()));"/>
+			<item value="package BOOKINGTOUR.controller;"/>
+			<item value="doanh"/>
+			<item value="xoa"/>
+			<item value="them"/>
+			<item value="themcc"/>
+			<item value="diem"/>
+			<item value="sear"/>
+			<item value="diemdulich "/>
+			<item value="&#x09;&#x09;&#x09;&#x09;&lt;% "/>
+			<item value="delete"/>
+		</list>
+		<list key="replacehistory">
+			<item value=""/>
+			<item value="dotkhuyenmai"/>
+		</list>
+	</section>
+	<section name="org.eclipse.ui.texteditor.FindReplaceDialog_dialogBounds">
+		<item key="DIALOG_X_ORIGIN" value="1038"/>
+		<item key="DIALOG_Y_ORIGIN" value="266"/>
+		<item key="DIALOG_WIDTH" value="414"/>
+		<item key="DIALOG_HEIGHT" value="454"/>
+		<item key="DIALOG_FONT_NAME" value="1|Segoe UI|9.0|0|WINDOWS|1|-15|0|0|0|400|0|0|0|1|0|0|0|0|Segoe UI"/>
+	</section>
+</section>

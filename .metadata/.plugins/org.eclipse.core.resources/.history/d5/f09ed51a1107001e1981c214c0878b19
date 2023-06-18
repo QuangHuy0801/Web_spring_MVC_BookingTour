@@ -1,0 +1,5 @@
+package BOOKINGTOUR.recaptcha;
+
+public class RecaptchaVerification {
+
+}

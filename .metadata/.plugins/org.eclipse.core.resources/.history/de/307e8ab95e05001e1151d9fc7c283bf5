@@ -1,0 +1,7 @@
+package BOOKINGTOUR.interceptor;
+
+import org.springframework.web.portlet.handler.HandlerInterceptorAdapter;
+
+public class LoggerInterceptor extends HandlerInterceptorAdapter {
+
+}

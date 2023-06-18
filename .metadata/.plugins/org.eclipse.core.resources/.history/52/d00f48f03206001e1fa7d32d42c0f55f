@@ -1,0 +1,975 @@
+package QLXB.controller;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServletRequest;
+import javax.transaction.Transactional;
+
+import org.hibernate.Query;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import BOOKINGTOUR.entity.CTTour;
+import BOOKINGTOUR.entity.DiemDuLich;
+import BOOKINGTOUR.entity.Tour;
+import QLXB.entity.CT_Tuyen_Duong;
+import QLXB.entity.ChucVu;
+import QLXB.entity.NhanVien;
+import QLXB.entity.TaiKhoan;
+import QLXB.entity.TramVe;
+import QLXB.entity.TramXe;
+import QLXB.entity.TuyenDuong;
+import QLXB.entity.Xe;
+
+@Transactional
+@Controller
+public class xeBuytController {
+	@Autowired
+	SessionFactory factory;
+	@Autowired
+	ServletContext context;
+
+	@RequestMapping("dsxe")
+	public String dsxe(HttpServletRequest request, ModelMap model, @RequestParam(defaultValue = "0") int page,
+			@ModelAttribute("message") String message, @RequestParam(defaultValue = "") String timkiem) {
+		int pageSize = 6;
+		int totalUsers = getSizeXe();
+		List<Xe> xes = this.getXes(page, pageSize, timkiem);
+		int totalPages = (int) Math.ceil((double) totalUsers / pageSize);
+		if (totalPages == 0) {
+			totalPages = 1;
+		}
+		model.addAttribute("offset", page * pageSize);
+		model.addAttribute("totalPages", totalPages);
+		model.addAttribute("currentPage", page);
+		model.addAttribute("xes", xes);
+		model.addAttribute("message", message);
+		return "xe/dsxe";
+	}
+
+	@RequestMapping(value = "themxe")
+	public String themxe(HttpServletRequest request, ModelMap model) {
+		Xe xe = new Xe();
+		NhanVien nhanVien = new NhanVien();
+		xe.setNhanVienLaiXe(nhanVien);
+		xe.setNhanVienPhuXe(nhanVien);
+		model.addAttribute("xe", xe);
+		return "xe/themxe";
+	}
+
+	
+	@RequestMapping(value="insertxe", method = RequestMethod.POST) 
+	public String insertxe(@ModelAttribute("xe") Xe xe,ModelMap model,BindingResult errors) {
+		
+		 boolean kt = true; if (xe.getBienSo().trim().length() == 0) 
+		 {errors.rejectValue("bienSo", "xe", "Vui lòng nhập biển số xe !"); kt = false;
+			} if (xe.getLoaiXe().trim().length() == 0) { errors.rejectValue("loaiXe",
+			 "xe", "Vui lòng loại xe!"); kt = false; }
+			  
+			 
+			  if (xe.getNhanVienLaiXe().getMaNV().trim().length() == 0) {
+			  errors.rejectValue("nhanVienLaiXe.maNV", "xe",
+			  "Vui lòng mã nhân viên lái xe !"); kt = false; } else if
+			 (searchNhanVien(xe.getNhanVienLaiXe().getMaNV().trim()) == null) {
+			  errors.rejectValue("nhanVienLaiXe.maNV", "xe",
+			  "Không có nhân viên lái xe này !"); kt = false; } if
+			 (xe.getNhanVienPhuXe().getMaNV().trim().length() == 0) {
+			  errors.rejectValue("nhanVienPhuXe.maNV", "xe",
+			  "Vui lòng mã nhân viên phụ xe !"); kt = false; } else if
+			 (searchNhanVien(xe.getNhanVienPhuXe().getMaNV().trim()) == null) {
+			  errors.rejectValue("nhanVienPhuXe.maNV", "xe",
+			 "Không có nhân viên phụ xe này !"); kt = false; }
+			
+		if(kt==true) {
+			 Session session = factory.openSession(); Transaction tr =
+					  session.beginTransaction();
+			xe.setNhanVienLaiXe(searchNhanVien(xe.getNhanVienLaiXe().getMaNV()));
+			xe.setNhanVienPhuXe(searchNhanVien(xe.getNhanVienPhuXe().getMaNV()));
+			
+			  try {
+			  
+			  
+			  session.save(xe);
+			 
+			  tr.commit(); model.addAttribute("message", 1); } catch (Exception e) {
+			  tr.rollback(); model.addAttribute("message", 2); } finally { session.close();
+			  }
+		}
+			
+		return "xe/themxe";
+	}
+	@RequestMapping(value = "suaxe/{bienSo}")
+	public String suanhanvien(ModelMap model, @PathVariable String bienSo) {
+		model.addAttribute("xe", this.searchXe(bienSo));
+		return "xe/suaxe";
+	}
+	@RequestMapping(value = "suaxe/updatexe", method = RequestMethod.POST)
+	public String updatexe(@ModelAttribute("xe") Xe xe, ModelMap model, BindingResult errors) {
+
+		 boolean kt = true; if (xe.getBienSo().trim().length() == 0) 
+		 {errors.rejectValue("bienSo", "xe", "Vui lòng nhập biển số xe !"); kt = false;
+			} if (xe.getLoaiXe().trim().length() == 0) { errors.rejectValue("loaiXe",
+			 "xe", "Vui lòng loại xe!"); kt = false; }
+			  
+			 
+			  if (xe.getNhanVienLaiXe().getMaNV().trim().length() == 0) {
+			  errors.rejectValue("nhanVienLaiXe.maNV", "xe",
+			  "Vui lòng mã nhân viên lái xe !"); kt = false; } else if
+			 (searchNhanVien(xe.getNhanVienLaiXe().getMaNV().trim()) == null) {
+			  errors.rejectValue("nhanVienLaiXe.maNV", "xe",
+			  "Không có nhân viên lái xe này !"); kt = false; } if
+			 (xe.getNhanVienPhuXe().getMaNV().trim().length() == 0) {
+			  errors.rejectValue("nhanVienPhuXe.maNV", "xe",
+			  "Vui lòng mã nhân viên phụ xe !"); kt = false; } else if
+			 (searchNhanVien(xe.getNhanVienPhuXe().getMaNV().trim()) == null) {
+			  errors.rejectValue("nhanVienPhuXe.maNV", "xe",
+			 "Không có nhân viên phụ xe này !"); kt = false; }
+		if (kt == true) {
+
+			Session session = factory.openSession();
+			Transaction t = session.beginTransaction();
+			try {
+				session.update(xe);
+				t.commit();
+				model.addAttribute("message", 1);
+			} catch (Exception e) {
+				t.rollback();
+				model.addAttribute("message", 2);
+
+			} finally {
+				session.close();
+			}
+		}
+		model.addAttribute("xe", xe);
+		return "xe/suaxe";
+	}
+
+	
+	
+	@RequestMapping("dstramxe")
+	public String dstramxe(HttpServletRequest request, ModelMap model, @RequestParam(defaultValue = "0") int page,
+			@ModelAttribute("message") String message, @RequestParam(defaultValue = "") String timkiem) {
+		int pageSize = 6;
+		int totalUsers = getSizeTramXe();
+		List<TramXe> tramXes = this.getTramXes(page, pageSize, timkiem);
+		int totalPages = (int) Math.ceil((double) totalUsers / pageSize);
+		if (totalPages == 0) {
+			totalPages = 1;
+		}
+		model.addAttribute("offset", page * pageSize);
+		model.addAttribute("totalPages", totalPages);
+		model.addAttribute("currentPage", page);
+		model.addAttribute("tramxes", tramXes);
+		model.addAttribute("message", message);
+		return "tramxe/dstramxe";
+	}
+	@RequestMapping(value = "themtramxe")
+	public String themtramxe(HttpServletRequest request, ModelMap model) {
+		TramXe tramXe = new TramXe();
+		NhanVien nhanVien = new NhanVien();
+		
+		tramXe.setNhanVienTaoTramXe(nhanVien);
+		model.addAttribute("tramXe", tramXe);
+		return "tramxe/themtramxe";
+	}
+	@RequestMapping(value="inserttramxe", method = RequestMethod.POST) 
+	public String inserttramxe(@ModelAttribute("tramXe") TramXe tramXe,ModelMap model,BindingResult errors) {
+
+		boolean kt = true;
+		if (tramXe.getMaSo().trim().length() == 0) {
+			errors.rejectValue("maSo", "tramXe", "Vui lòng nhập mã số trạm !");
+			kt = false;
+		} else if (searchTramXe(tramXe.getMaSo().trim()) != null) {
+			errors.rejectValue("maSo", "tramXe", "Mã trạm xe đã bị trùm!");
+			kt = false;
+		}
+		if(tramXe.getTen().trim().length() == 0) 
+		 {errors.rejectValue("ten", "tramXe", "Vui lòng nhập tên trạm !"); kt = false;
+			} 
+		if(tramXe.getDiaChi().trim().length() == 0) 
+		 {errors.rejectValue("diaChi", "tramXe", "Vui lòng nhập địa chỉ trạm !"); kt = false;
+			} 
+			
+		if(kt==true) {
+			 Session session = factory.openSession(); Transaction tr =
+					  session.beginTransaction();
+			tramXe.setNhanVienTaoTramXe(searchNhanVien(tramXe.getNhanVienTaoTramXe().getMaNV()));
+			  try {
+			  session.save(tramXe);
+			 
+			  tr.commit(); model.addAttribute("message", 1); } catch (Exception e) {
+			  tr.rollback(); model.addAttribute("message", 2); } finally { session.close();
+			  }
+		}
+			
+		return "tramxe/themtramxe";
+	}
+	@RequestMapping(value = "suatramxe/{maSo}")
+	public String suatramxe(ModelMap model, @PathVariable String maSo) {
+		model.addAttribute("tramXe", this.searchTramXe(maSo));
+		return "tramxe/suatramxe";
+	}
+	@RequestMapping(value = "suatramxe/updatetramxe", method = RequestMethod.POST)
+	public String updatetramxe(@ModelAttribute("tramXe") TramXe tramXe, ModelMap model, BindingResult errors) {
+
+		boolean kt = true;
+		if (tramXe.getMaSo().trim().length() == 0) {
+			errors.rejectValue("maSo", "tramXe", "Vui lòng nhập mã số trạm !");
+			kt = false;
+		} 
+		if(tramXe.getTen().trim().length() == 0) 
+		 {errors.rejectValue("ten", "tramXe", "Vui lòng nhập tên trạm !"); kt = false;
+			} 
+		if(tramXe.getDiaChi().trim().length() == 0) 
+		 {errors.rejectValue("diaChi", "tramXe", "Vui lòng nhập địa chỉ trạm !"); kt = false;
+			} 
+		if (kt == true) {
+
+			Session session = factory.openSession();
+			Transaction t = session.beginTransaction();
+			try {
+				session.update(tramXe);
+				t.commit();
+				model.addAttribute("message", 1);
+			} catch (Exception e) {
+				t.rollback();
+				model.addAttribute("message", 2);
+
+			} finally {
+				session.close();
+			}
+		}
+		model.addAttribute("tramXe", tramXe);
+		return "tramxe/suatramxe";}
+	@RequestMapping(value="xoaxe/{bienSo}")
+	public String xoadiemdulich(ModelMap model ,@PathVariable String bienSo) {
+		/* DiemDuLich diemDuLich = searchDiemDuLich(id); */
+
+		Session session = factory.openSession();
+		Transaction t = session.beginTransaction();
+		try {
+			/* session.delete(diemDuLich); */
+			
+			String hql = "delete from Xe where bienSo=:bienSo";
+
+			
+			Query query1 = session.createQuery(hql);
+			query1.setParameter("bienSo", bienSo);
+			int result1 = query1.executeUpdate();
+
+			t.commit();
+			model.addAttribute("message", 1);
+		} catch (Exception e) {
+			t.rollback();
+			model.addAttribute("message", 2);
+			
+		} finally {
+			session.close();
+		}
+		
+		return"redirect:/dsxe.htm";
+	}
+	@RequestMapping(value="xoatramxe/{maSo}")
+	public String xoatramxe(ModelMap model ,@PathVariable String maSo) {
+		/* DiemDuLich diemDuLich = searchDiemDuLich(id); */
+
+		Session session = factory.openSession();
+		Transaction t = session.beginTransaction();
+		try {
+			/* session.delete(diemDuLich); */
+			
+			String hql = "delete from TramXe where maSo=:maSo";
+
+			
+			Query query1 = session.createQuery(hql);
+			query1.setParameter("maSo", maSo);
+			int result1 = query1.executeUpdate();
+
+			t.commit();
+			model.addAttribute("message", 1);
+		} catch (Exception e) {
+			t.rollback();
+			model.addAttribute("message", 2);
+			
+		} finally {
+			session.close();
+		}
+		
+		return"redirect:/dstramxe.htm";
+	}
+	
+	@RequestMapping("dstramve")
+	public String dstramve(HttpServletRequest request, ModelMap model, @RequestParam(defaultValue = "0") int page,
+			@ModelAttribute("message") String message, @RequestParam(defaultValue = "") String timkiem) {
+		int pageSize = 6;
+		int totalUsers = getSizeTramVe();
+		List<TramVe> tramVes = this.getTramVes(page, pageSize, timkiem);
+		int totalPages = (int) Math.ceil((double) totalUsers / pageSize);
+		if (totalPages == 0) {
+			totalPages = 1;
+		}
+		model.addAttribute("offset", page * pageSize);
+		model.addAttribute("totalPages", totalPages);
+		model.addAttribute("currentPage", page);
+		model.addAttribute("tramves", tramVes);
+		model.addAttribute("message", message);
+		return "tramve/dstramve";
+	}
+	
+	@RequestMapping(value = "themtramve")
+	public String themtramve(HttpServletRequest request, ModelMap model) {
+		TramVe tramVe = new TramVe();
+		NhanVien nhanVien = new NhanVien();
+		model.addAttribute("tramVe", tramVe);
+		model.addAttribute("nhanVienBanVes", getNhanVienTramVe(4));
+		return "tramve/themtramve";
+	}
+	
+	
+	@RequestMapping(value="inserttramve", method = RequestMethod.POST) 
+	public String inserttramve(@ModelAttribute("tramVe") TramVe tramVe,ModelMap model,BindingResult errors) {
+
+		boolean kt = true;
+		 
+		if(tramVe.getTen().trim().length() == 0) 
+		 {errors.rejectValue("ten", "tramVe", "Vui lòng nhập tên trạm !"); kt = false;
+			} else if (searchTramVe(tramVe.getTen().trim())!= null) {
+				errors.rejectValue("ten", "tramVe", "Tên trạm ve đã bị trùm!");
+				kt = false;
+			}
+		if(tramVe.getDiaChi().trim().length() == 0) 
+		 {errors.rejectValue("diaChi", "tramVe", "Vui lòng nhập địa chỉ trạm !"); kt = false;
+			} 
+			
+		if(kt==true) {
+			 Session session = factory.openSession(); Transaction tr =
+					  session.beginTransaction();
+			tramVe.setNhanVienBanVe(searchNhanVien(tramVe.getNhanVienBanVe().getMaNV()));
+			  try {
+			  session.save(tramVe);
+			 
+			  tr.commit(); model.addAttribute("message", 1); } catch (Exception e) {
+			  tr.rollback(); model.addAttribute("message", 2); } finally { session.close();
+			  }
+		}
+		model.addAttribute("nhanVienBanVes", getNhanVienTramVe(4));
+		return "tramve/themtramve";
+	}
+	@RequestMapping(value = "suatramve/{id}")
+	public String suatramve(ModelMap model, @PathVariable int id) {
+		TramVe tramVe =searchTramVe(id);
+		List<NhanVien> list= getNhanVienTramVe(4);
+		list.add(tramVe.getNhanVienBanVe());
+		model.addAttribute("nhanVienBanVes",list );
+		model.addAttribute("tramVe", tramVe);
+		return "tramve/suatramve";
+	}
+	
+	@RequestMapping(value = "suatramve/updatetramve", method = RequestMethod.POST)
+	public String updatetramve(@ModelAttribute("tramVe") TramVe tramVe, ModelMap model, BindingResult errors) {
+
+		boolean kt = true;
+		 
+		if(tramVe.getTen().trim().length() == 0) 
+		 {errors.rejectValue("ten", "tramVe", "Vui lòng nhập tên trạm !"); kt = false;
+			} 
+		if(tramVe.getDiaChi().trim().length() == 0) 
+		 {errors.rejectValue("diaChi", "tramVe", "Vui lòng nhập địa chỉ trạm !"); kt = false;
+			} 
+			
+		if(kt==true) { 
+
+			Session session = factory.openSession();
+			Transaction t = session.beginTransaction();
+			tramVe.setNhanVienBanVe(searchNhanVien(tramVe.getNhanVienBanVe().getMaNV()));
+			try {
+				session.update(tramVe);
+				t.commit();
+				model.addAttribute("message", 1);
+			} catch (Exception e) {
+				t.rollback();
+				model.addAttribute("message", 2);
+
+			} finally {
+				session.close();
+			}
+		}
+		List<NhanVien> list= getNhanVienTramVe(4);
+		list.add(tramVe.getNhanVienBanVe());
+		model.addAttribute("nhanVienBanVes",list );
+		model.addAttribute("tramVe", tramVe);
+		return "tramve/suatramve";
+	}
+	
+	@RequestMapping(value="xoatramve/{id}")
+	public String xoatramve(ModelMap model ,@PathVariable int id) {
+		/* DiemDuLich diemDuLich = searchDiemDuLich(id); */
+
+		Session session = factory.openSession();
+		Transaction t = session.beginTransaction();
+		try {
+			/* session.delete(diemDuLich); */
+			
+			String hql = "delete from TramVe where id=:id";
+
+			
+			Query query1 = session.createQuery(hql);
+			query1.setParameter("id", id);
+			int result1 = query1.executeUpdate();
+
+			t.commit();
+			model.addAttribute("message", 1);
+		} catch (Exception e) {
+			t.rollback();
+			model.addAttribute("message", 2);
+			
+		} finally {
+			session.close();
+		}
+		
+		return"redirect:/dstramve.htm";
+	}
+	@RequestMapping("dstuyenduong")
+	public String dstuyenduong(HttpServletRequest request, ModelMap model, @RequestParam(defaultValue = "0") int page,
+			@ModelAttribute("message") String message, @RequestParam(defaultValue = "") String timkiem) {
+		int pageSize = 6;
+		int totalUsers = getSizeTuyenDuong();
+		List<TuyenDuong> tuyenDuongs = this.gettTuyenDuongs(page, pageSize, timkiem);
+		int totalPages = (int) Math.ceil((double) totalUsers / pageSize);
+		if (totalPages == 0) {
+			totalPages = 1;
+		}
+		model.addAttribute("offset", page * pageSize);
+		model.addAttribute("totalPages", totalPages);
+		model.addAttribute("currentPage", page);
+		model.addAttribute("tuyenduongs", tuyenDuongs);
+		model.addAttribute("message", message);
+		return "tuyenduong/dstuyenduong";
+	}
+	
+	@RequestMapping(value = "themtuyenduong")
+	public String themtuyenduong(HttpServletRequest request, ModelMap model) {
+		TuyenDuong tuyenDuong = new TuyenDuong();
+		NhanVien nhanVien = new NhanVien();
+		tuyenDuong.setNhanVienTD(nhanVien);
+		
+		model.addAttribute("tuyenDuong", tuyenDuong);
+		return "tuyenduong/themtuyenduong";
+	}
+	
+	@RequestMapping(value="inserttuyenduong", method = RequestMethod.POST) 
+	public String insertduongxe(@ModelAttribute("tuyenDuong") TuyenDuong tuyenDuong,ModelMap model,BindingResult errors) {
+
+		boolean kt = true;
+		 
+		if(tuyenDuong.getTen().trim().length() == 0) 
+		 {errors.rejectValue("ten", "tuyenDuong", "Vui lòng nhập tên tuyến !"); kt = false;
+			} else if (searchTuyenDuong(tuyenDuong.getTen().trim())!= null) {
+				errors.rejectValue("ten", "tuyenDuong", "Tên tuyến đường đã bị trùng!");
+				kt = false;
+			}
+		if(tuyenDuong.getGianCach().trim().length() == 0) 
+		 {errors.rejectValue("gianCach", "tuyenDuong", "Vui lòng nhập giãn cách !"); kt = false;
+			}
+		if(tuyenDuong.getThoiGianChuyen().trim().length() == 0) 
+		 {errors.rejectValue("thoiGianChuyen", "tuyenDuong", "Vui lòng nhập thời gian tuyến !"); kt = false;
+			}
+		if(tuyenDuong.getThoiGianHD().trim().length() == 0) 
+		 {errors.rejectValue("thoiGianHD", "tuyenDuong", "Vui lòng thời gian hoạt động !"); kt = false;
+			}
+		if(tuyenDuong.getCuLy() == 0) 
+		 {errors.rejectValue("cuLy", "tuyenDuong", "Vui lòng nhập địa cự ly !"); kt = false;
+			} 
+			
+		if(kt==true) {
+			 Session session = factory.openSession(); Transaction tr =
+					  session.beginTransaction();
+			 tuyenDuong.setNhanVienTD(searchNhanVien(tuyenDuong.getNhanVienTD().getMaNV()));
+			
+			
+			  try {
+			  session.save(tuyenDuong);
+			 
+			  tr.commit(); model.addAttribute("message", 1); } catch (Exception e) {
+			  tr.rollback(); model.addAttribute("message", 2); } finally { session.close();
+			  }
+		}
+		model.addAttribute("tuyenDuong", tuyenDuong);
+		return "tuyenduong/themtuyenduong";
+	}
+	
+	@RequestMapping(value = "suatuyenduong/{id}")
+	public String suanhanvien(ModelMap model, @PathVariable int id) {
+		model.addAttribute("tuyenDuong", this.searchTuyenDuong(id));
+		return "tuyenduong/suatuyenduong";
+	}
+	
+	@RequestMapping(value = "suatuyenduong/updatetuyenduong", method = RequestMethod.POST)
+	public String updatetuyenduong(@ModelAttribute("tuyenDuong") TuyenDuong tuyenDuong, ModelMap model, BindingResult errors) {
+
+		boolean kt = true;
+		 
+		
+		 
+		if(tuyenDuong.getTen().trim().length() == 0) 
+		 {errors.rejectValue("ten", "tuyenDuong", "Vui lòng nhập tên tuyến !"); kt = false;
+			} 
+		if(tuyenDuong.getGianCach().trim().length() == 0) 
+		 {errors.rejectValue("gianCach", "tuyenDuong", "Vui lòng nhập giãn cách !"); kt = false;
+			}
+		if(tuyenDuong.getThoiGianChuyen().trim().length() == 0) 
+		 {errors.rejectValue("thoiGianChuyen", "tuyenDuong", "Vui lòng nhập thời gian tuyến !"); kt = false;
+			}
+		if(tuyenDuong.getThoiGianHD().trim().length() == 0) 
+		 {errors.rejectValue("thoiGianHD", "tuyenDuong", "Vui lòng thời gian hoạt động !"); kt = false;
+			}
+		if(tuyenDuong.getCuLy() == 0) 
+		 {errors.rejectValue("cuLy", "tuyenDuong", "Vui lòng nhập địa cự ly !"); kt = false;
+			} 
+			
+		if(kt==true) { 
+
+			Session session = factory.openSession();
+			Transaction t = session.beginTransaction();
+			tuyenDuong.setNhanVienTD(searchNhanVien(tuyenDuong.getNhanVienTD().getMaNV()));
+			
+			
+			try {
+				session.update(tuyenDuong);
+				t.commit();
+				model.addAttribute("message", 1);
+			} catch (Exception e) {
+				t.rollback();
+				model.addAttribute("message", 2);
+
+			} finally {
+				session.close();
+			}
+		}
+		model.addAttribute("tuyenDuong", tuyenDuong);;
+		return "tuyenduong/suatuyenduong";
+	}
+	
+	@RequestMapping(value="xoatuyenduong/{id}")
+	public String xoatuyenduong(ModelMap model ,@PathVariable int id) {
+		/* DiemDuLich diemDuLich = searchDiemDuLich(id); */
+
+		Session session = factory.openSession();
+		Transaction t = session.beginTransaction();
+		try {
+			/* session.delete(diemDuLich); */
+			
+			String hql = "delete from TuyenDuong where id=:id";
+
+			
+			Query query1 = session.createQuery(hql);
+			query1.setParameter("id", id);
+			int result1 = query1.executeUpdate();
+
+			t.commit();
+			model.addAttribute("message", 1);
+		} catch (Exception e) {
+			t.rollback();
+			model.addAttribute("message", 2);
+			
+		} finally {
+			session.close();
+		}
+		
+		return"redirect:/dstuyenduong.htm";
+	}
+	
+	@RequestMapping(value="cttuyenduong/{id}")
+	public String cttuyenduong(ModelMap model ,@PathVariable int id,@ModelAttribute("message") String message,@RequestParam(defaultValue = "0") int currentPage,@RequestParam(defaultValue = "") String timkiem) {
+		TuyenDuong tuyenDuong= searchTuyenDuong(id);
+		
+int pageSize = 9; // Số lượng phần tử trên mỗi trang
+		
+
+		int totalUsers = getSizeCTTuyenDuong(id); // Tổng số lượng phần tử trên toàn bộ danh sách
+			List<CT_Tuyen_Duong> ct_Tuyen_Duongs = this.getCTTuyen_Duongs(currentPage,pageSize,id,timkiem);
+		    int totalPages = (int) Math.ceil((double) totalUsers / pageSize);
+		    if(totalPages==0) {
+				totalPages=1;
+			}
+			 model.addAttribute("totalPages", totalPages);
+			    model.addAttribute("currentPage", currentPage);
+			    model.addAttribute("offset", currentPage * pageSize);
+			model.addAttribute("message", message);
+			model.addAttribute("ct_Tuyen_Duongs", ct_Tuyen_Duongs);
+			model.addAttribute("idTD",id);
+		return"tuyenduong/dscttram";
+	}
+	
+	@RequestMapping(value="cttuyenduong/capNhapThuTu", method = RequestMethod.POST)
+	public String capNhapThuTu(HttpServletRequest request,ModelMap model ,@ModelAttribute("id") String id,@ModelAttribute("idTD") String idTD) {
+		TuyenDuong tuyenDuong =this.searchTuyenDuong( Integer.parseInt(idTD));
+		int indexThuTu=Integer.parseInt(request.getParameter("thuTu").trim()) ;
+		 List<CT_Tuyen_Duong> listcttour  =   tuyenDuong.getCt_Tuyen_Duongs();
+		 int thuTuMax=-1;
+		 for(CT_Tuyen_Duong ct:listcttour) {
+			 thuTuMax=Math.max(thuTuMax, ct.getThuTu());
+		 }
+		 CT_Tuyen_Duong ct_Tuyen_Duong= this.searchCt_Tuyen_Duong(Integer.parseInt(id));
+		if(request.getParameter("thuTu").trim().length()==0 || indexThuTu <=0) {model.addAttribute("message", 2);}
+		else if(indexThuTu==ct_Tuyen_Duong.getThuTu()) {}
+		else {
+			if(indexThuTu>thuTuMax) {indexThuTu=thuTuMax;}
+			
+			
+		int thuTu =ct_Tuyen_Duong.getThuTu();
+		Session session = factory.openSession();
+			Transaction t = session.beginTransaction();
+			try {
+				if(indexThuTu>thuTu) {
+				String updateHql = "update CT_Tuyen_Duong set thuTu = thuTu + 1 where thuTu > :thuTu and tuyenDuong.id = :tourId";
+				Query updateQuery = session.createQuery(updateHql);
+				updateQuery.setParameter("thuTu",indexThuTu);
+				updateQuery.setParameter("tourId", tuyenDuong.getId());
+				updateQuery.executeUpdate();
+				ct_Tuyen_Duong.setThuTu(indexThuTu);
+				session.update(ct_Tuyen_Duong);
+				
+					String updateHql1 = "update CT_Tuyen_Duong set thuTu = thuTu - 1 where thuTu > :thuTu and tuyenDuong.id = :tourId ";
+					Query updateQuery1 = session.createQuery(updateHql1);
+					updateQuery1.setParameter("thuTu",thuTu);
+					updateQuery1.setParameter("tourId", ct_Tuyen_Duong.getId());
+					updateQuery1.executeUpdate();
+				}
+				else {
+				
+					 
+						String updateHql = "update CT_Tuyen_Duong set thuTu = thuTu + 1 where thuTu >= :thuTu and tuyenDuong.id = :tourId and thuTu <:thuTu1";
+						Query updateQuery = session.createQuery(updateHql);
+						updateQuery.setParameter("thuTu",indexThuTu);
+						updateQuery.setParameter("thuTu1",thuTu);
+						updateQuery.setParameter("tourId", ct_Tuyen_Duong.getId());
+						updateQuery.executeUpdate();
+						ct_Tuyen_Duong.setThuTu(indexThuTu);
+						session.update(ct_Tuyen_Duong);
+				
+				}
+				
+				
+				
+				t.commit();
+				
+				model.addAttribute("message", 1);
+			} catch (Exception e) {
+				t.rollback();
+				model.addAttribute("message", 2);
+				
+			} finally {
+				session.close();
+			}
+		}
+			int id1=Integer.parseInt(idTD);
+			return "redirect:/cttuyenduong/" + id1 + ".htm";
+			
+}
+	
+	@RequestMapping(value="cttuyenduong/themcttuyenduong/{id}")
+	public String themcttour(HttpServletRequest request,ModelMap model,@PathVariable int id,@ModelAttribute("message") String message,@RequestParam(defaultValue = "0") int currentPage) {
+		TuyenDuong tuyenDuong= new TuyenDuong();
+		tuyenDuong=searchTuyenDuong(id);
+		
+		List<TramXe> listDDL= new ArrayList<TramXe>();
+		
+		for(CT_Tuyen_Duong c:tuyenDuong.getCt_Tuyen_Duongs()) {
+			listDDL.add(c.getTramXe());
+		}
+		
+		List<TramXe> DDLConLai = tramVeConLai(listDDL,getListTramXes());
+		
+		
+		int pageSize = 5; // Số lượng phần tử trên mỗi trang
+		int totalCount = DDLConLai.size(); // Tổng số lượng phần tử trên toàn bộ danh sách
+		 int totalPages = (int) Math.ceil((double) totalCount / pageSize);
+		 System.out.println(totalCount);
+		 if(totalPages==0) {
+				totalPages=1;
+			}
+		
+		
+		int startIndex = (currentPage)  * pageSize;
+		int endIndex = Math.min(startIndex + pageSize, totalCount);
+		System.out.println(startIndex);
+		System.out.println(endIndex);
+		// Lấy phần tử của danh sách theo giới hạn kết quả trả về
+		List<TramXe> result = DDLConLai.subList(startIndex, endIndex);
+		
+		 
+		
+		
+	    
+	    model.addAttribute("totalPages", totalPages);
+	    model.addAttribute("currentPage", currentPage);
+		
+		
+		
+		model.addAttribute("idTD",id);
+		model.addAttribute("tramxes",result);
+		return"tour/themcttour";
+	}
+	public List<TramXe> getListTramXes() {
+		Session session = factory.getCurrentSession();
+		String hql = "FROM TramXe";
+		List<TramXe> diemDuLich = session.createQuery(hql).list();
+		return  diemDuLich;
+	}
+	
+	public static List<TramXe> tramVeConLai(List<TramXe> list1, List<TramXe> list2) {
+	    List<TramXe> combined = new ArrayList<>();
+	    
+	    combined.addAll(list2);
+	    combined.removeAll(list1);
+
+	    return combined;
+	}
+	public int getSizeXe() {
+		Session session = factory.getCurrentSession();
+		String hql = "FROM Xe";
+		Query query = session.createQuery(hql);
+		List<Xe> list = query.list();
+
+		return list.size();
+	}
+	public int getSizeTramXe() {
+		Session session = factory.getCurrentSession();
+		String hql = "FROM TramXe";
+		Query query = session.createQuery(hql);
+		List<TramXe> list = query.list();
+
+		return list.size();
+	}
+	public int getSizeTramVe() {
+		Session session = factory.getCurrentSession();
+		String hql = "FROM TramVe";
+		Query query = session.createQuery(hql);
+		List<TramVe> list = query.list();
+
+		return list.size();
+	}
+	public int getSizeCTTuyenDuong(int id) {
+		Session session = factory.getCurrentSession();
+		String hql = "FROM CT_Tuyen_Duong where tuyenDuong.id =:id";
+		Query query = session.createQuery(hql);
+		query.setParameter("id", id);
+		List<CT_Tuyen_Duong> list = query.list();
+
+		return list.size();
+	}
+
+	public List<Xe> getXes(int page, int pageSize, String ten) {
+		Session session = factory.getCurrentSession();
+		String hql;
+		Query query;
+		List<Xe> list;
+		if (ten.length() == 0) {
+			hql = "FROM Xe t ORDER BY t.bienSo DESC";
+			query = session.createQuery(hql);
+			int offset = page * pageSize;
+			list = query.setFirstResult(offset).setMaxResults(pageSize).list();
+		} else {
+			hql = "FROM Xe t where t.bienSo LIKE CONCAT( '%' ,:ten, '%') ORDER BY t.bienSo DESC";
+			query = session.createQuery(hql);
+			int offset = page * pageSize;
+			query.setParameter("ten", ten);
+			list = query.setFirstResult(offset).setMaxResults(pageSize).list();
+		}
+		return list;
+	}
+	
+	public List<TramVe> getTramVes(int page, int pageSize, String ten) {
+		Session session = factory.getCurrentSession();
+		String hql;
+		Query query;
+		List<TramVe> list;
+		if (ten.length() == 0) {
+			hql = "FROM TramVe t ORDER BY t.id DESC";
+			query = session.createQuery(hql);
+			int offset = page * pageSize;
+			list = query.setFirstResult(offset).setMaxResults(pageSize).list();
+		} else {
+			hql = "FROM TramVe t where t.ten LIKE CONCAT( '%' ,:ten, '%') ORDER BY t.id DESC";
+			query = session.createQuery(hql);
+			int offset = page * pageSize;
+			query.setParameter("ten", ten);
+			list = query.setFirstResult(offset).setMaxResults(pageSize).list();
+		}
+		return list;
+	}
+	public List<TramXe> getTramXes(int page, int pageSize, String ten) {
+		Session session = factory.getCurrentSession();
+		String hql;
+		Query query;
+		List<TramXe> list;
+		if (ten.length() == 0) {
+			hql = "FROM TramXe t ORDER BY t.maSo DESC";
+			query = session.createQuery(hql);
+			int offset = page * pageSize;
+			list = query.setFirstResult(offset).setMaxResults(pageSize).list();
+		} else {
+			hql = "FROM TramXe t where t.ten LIKE CONCAT( '%' ,:ten, '%') ORDER BY t.ten DESC";
+			query = session.createQuery(hql);
+			int offset = page * pageSize;
+			query.setParameter("ten", ten);
+			list = query.setFirstResult(offset).setMaxResults(pageSize).list();
+		}
+		return list;
+	}
+	public List<NhanVien> getNhanVien(int id) {
+		Session session = factory.getCurrentSession();
+		String hql = "FROM NhanVien where chucVu.id =:id";
+		Query query = session.createQuery(hql);
+		query.setParameter("id", id);
+		List<NhanVien> list = query.list();
+		return list;
+	}
+		public List<NhanVien> getNhanVienTramVe(int id) {
+		Session session = factory.getCurrentSession();
+		String hql = "FROM NhanVien nv WHERE nv.chucVu.id = 4 AND nv.maNV Not IN (SELECT tv.nhanVienBanVe.maNV FROM TramVe tv)"
+				;
+		Query query = session.createQuery(hql);
+
+		List<NhanVien> list = query.list();
+		return list;
+	}
+	public NhanVien searchNhanVien(String maNV) {
+		Session session = factory.getCurrentSession();
+		String hql = "FROM NhanVien WHERE maNV = :maNV";
+		Query query = session.createQuery(hql);
+		query.setParameter("maNV", maNV);
+		if (query.list().size() == 0)
+			return null;
+		return (NhanVien) query.list().get(0);
+	}
+	public TramXe searchTramXe(String maSo) {
+		Session session = factory.getCurrentSession();
+		String hql = "FROM TramXe WHERE maSo = :maSo";
+		Query query = session.createQuery(hql);
+		query.setParameter("maSo", maSo);
+		if (query.list().size() == 0)
+			return null;
+		return (TramXe) query.list().get(0);
+	}
+	public TramVe searchTramVe(String ten) {
+		Session session = factory.getCurrentSession();
+		String hql = "FROM TramVe WHERE ten = :ten";
+		Query query = session.createQuery(hql);
+		query.setParameter("ten", ten);
+		if (query.list().size() == 0)
+			return null;
+		return (TramVe) query.list().get(0);
+	}
+	public TuyenDuong searchTuyenDuong(String ten) {
+		Session session = factory.getCurrentSession();
+		String hql = "FROM TuyenDuong WHERE ten = :ten";
+		Query query = session.createQuery(hql);
+		query.setParameter("ten", ten);
+		if (query.list().size() == 0)
+			return null;
+		return (TuyenDuong) query.list().get(0);
+	}
+	public TuyenDuong searchTuyenDuong(int id) {
+		Session session = factory.getCurrentSession();
+		String hql = "FROM TuyenDuong WHERE id = :id";
+		Query query = session.createQuery(hql);
+		query.setParameter("id", id);
+		if (query.list().size() == 0)
+			return null;
+		return (TuyenDuong) query.list().get(0);
+	}
+	public TramVe searchTramVe(int id) {
+		Session session = factory.getCurrentSession();
+		String hql = "FROM TramVe WHERE id = :id";
+		Query query = session.createQuery(hql);
+		query.setParameter("id", id);
+		if (query.list().size() == 0)
+			return null;
+		return (TramVe) query.list().get(0);
+	}
+	
+	public Xe searchXe(String bienSo) {
+		Session session = factory.getCurrentSession();
+		String hql = "FROM Xe WHERE bienSo = :bienSo";
+		Query query = session.createQuery(hql);
+		query.setParameter("bienSo", bienSo);
+		if (query.list().size() == 0)
+			return null;
+		return (Xe) query.list().get(0);
+	}
+	public List<TuyenDuong> gettTuyenDuongs(int page, int pageSize, String ten) {
+		Session session = factory.getCurrentSession();
+		String hql;
+		Query query;
+		List<TuyenDuong> list;
+		if (ten.length() == 0) {
+			hql = "FROM TuyenDuong t ORDER BY t.id DESC";
+			query = session.createQuery(hql);
+			int offset = page * pageSize;
+			list = query.setFirstResult(offset).setMaxResults(pageSize).list();
+		} else {
+			hql = "FROM TuyenDuong t where t.ten LIKE CONCAT( '%' ,:ten, '%') ORDER BY t.ten DESC";
+			query = session.createQuery(hql);
+			int offset = page * pageSize;
+			query.setParameter("ten", ten);
+			list = query.setFirstResult(offset).setMaxResults(pageSize).list();
+		}
+		return list;
+	}
+	public int getSizeTuyenDuong() {
+		Session session = factory.getCurrentSession();
+		String hql = "FROM TuyenDuong";
+		Query query = session.createQuery(hql);
+		List<TuyenDuong> list = query.list();
+
+		return list.size();
+	}
+	
+	
+	public List<CT_Tuyen_Duong> getCTTuyen_Duongs(int page, int pageSize, int idTD,String ten) {
+		Session session = factory.getCurrentSession();
+		String hql;
+		Query query;
+		List<CT_Tuyen_Duong> list;
+		if (ten.length() == 0 )
+		{
+			hql ="FROM CT_Tuyen_Duong t where t.tuyenDuong.id =:idTD ORDER BY t.thuTu ASC";
+			query = session.createQuery(hql);
+			query.setParameter("idTD", idTD);
+			int offset = page * pageSize;
+			list = query.setFirstResult(offset).setMaxResults(pageSize).list();
+		} else
+		{
+			hql ="FROM CT_Tuyen_Duong t where t.tramXe.ten LIKE CONCAT( '%',:ten, '%') and  t.tuyenDuong.id =:idTD ORDER BY t.thuTu ASC";
+			query = session.createQuery(hql);
+			int offset = page * pageSize;
+			query.setParameter("idTD", idTD);
+			query.setParameter("ten", ten);
+			list = query.setFirstResult(offset).setMaxResults(pageSize).list();
+		}
+		return list;
+	}
+	public CT_Tuyen_Duong searchCt_Tuyen_Duong(int id) {
+		Session session = factory.getCurrentSession();
+		String hql = "FROM CT_Tuyen_Duong WHERE id = :id";
+		Query query = session.createQuery(hql);
+		query.setParameter("id", id);
+		if(query.list().size()==0) return null;
+		return (CT_Tuyen_Duong) query.list().get(0);
+	}
+
+}

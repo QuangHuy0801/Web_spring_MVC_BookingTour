@@ -1,0 +1,6 @@
+#Tomcat publish data
+#Wed Jun 14 03:15:37 ICT 2023
+org.eclipse.jst.jee.server\:/binary\:C\:\\Users\\ADMIN\\Desktop\\QLXB\\src\\main\\webapp\\WEB-INF\\lib\\spring-web-4.0.1.RELEASE.jar=WEB-INF/lib/spring-web-4.0.1.RELEASE.jar
+org.eclipse.jst.jee.server\:/binary\:E\:\\bookingtour\\product\\BOOKINGTOUR\\src\\main\\webapp\\WEB-INF\\lib\\spring-web-4.0.1.RELEASE.jar=WEB-INF/lib/spring-web-4.0.1.RELEASE.jar
+org.eclipse.jst.jee.server\:/binary\:E\:\\java_MVC\\PTITHCMS1L1\\src\\main\\webapp\\WEB-INF\\lib\\spring-web-4.0.1.RELEASE.jar=WEB-INF/lib/spring-web-4.0.1.RELEASE.jar
+org.eclipse.jst.jee.server\:/binary\:E\:\\java_MVC\\PTITHCMS1L1\\src\\main\\webapp\\WEB-INF\\lib\\spring-web-6.0.6.jar=WEB-INF/lib/spring-web-6.0.6.jar

@@ -1,0 +1,98 @@
+package QLXB.entity;
+
+import java.util.List;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
+import javax.persistence.Table;
+
+@Entity
+@Table(name="GIAVE")
+public class GiaVe {
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name="ID")
+	private  int id;
+	@Column(name="GIAVEHSSV")
+	private  float giaVeHSSV;
+	@Column(name="GIAVEBT")
+	private  float giaVeBT;
+	@Column(name="GIAVETAP")
+	private  float giaVeTap;
+	@Column(name="LOAIHINH")
+	private  String loaiHinh;
+	
+	 @OneToMany(mappedBy = "giaVe", fetch = FetchType.LAZY) 
+	  private List<DoanhThuNgay> doanhThuNgays;
+
+
+	public int getId() {
+		return id;
+	}
+
+
+	public void setId(int id) {
+		this.id = id;
+	}
+
+
+	public float getGiaVeHSSV() {
+		return giaVeHSSV;
+	}
+
+
+	public void setGiaVeHSSV(float giaVeHSSV) {
+		this.giaVeHSSV = giaVeHSSV;
+	}
+
+
+	public float getGiaVeBT() {
+		return giaVeBT;
+	}
+
+
+	public void setGiaVeBT(float giaVeBT) {
+		this.giaVeBT = giaVeBT;
+	}
+
+
+	public float getGiaVeTap() {
+		return giaVeTap;
+	}
+
+
+	public void setGiaVeTap(float giaVeTap) {
+		this.giaVeTap = giaVeTap;
+	}
+
+
+	public String getLoaiHinh() {
+		return loaiHinh;
+	}
+
+
+	public void setLoaiHinh(String loaiHinh) {
+		this.loaiHinh = loaiHinh;
+	}
+
+
+	public List<DoanhThuNgay> getDoanhThuNgays() {
+		return doanhThuNgays;
+	}
+
+
+	public void setDoanhThuNgays(List<DoanhThuNgay> doanhThuNgays) {
+		this.doanhThuNgays = doanhThuNgays;
+	}
+
+
+	}
+	
+	
+	

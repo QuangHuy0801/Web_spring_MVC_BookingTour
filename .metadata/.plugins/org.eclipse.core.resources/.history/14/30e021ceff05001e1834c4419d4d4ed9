@@ -1,0 +1,67 @@
+package QLXB.entity;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+
+@Entity
+@Table(name="TRAMXE")
+public class TramVe {
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name="ID")
+	private  String maSo;
+	@Column(name="DIADIEM")
+	private  String diaChi;
+	@Column(name="TENTRAMVE")
+	private  String ten;
+
+	 @ManyToOne()
+	  @JoinColumn(name="MANVBV") private NhanVien nhanVienBanVe;
+
+	public String getMaSo() {
+		return maSo;
+	}
+
+	public void setMaSo(String maSo) {
+		this.maSo = maSo;
+	}
+
+	public String getDiaChi() {
+		return diaChi;
+	}
+
+	public void setDiaChi(String diaChi) {
+		this.diaChi = diaChi;
+	}
+
+	public String getTen() {
+		return ten;
+	}
+
+	public void setTen(String ten) {
+		this.ten = ten;
+	}
+
+	public NhanVien getNhanVienBanVe() {
+		return nhanVienBanVe;
+	}
+
+	public void setNhanVienBanVe(NhanVien nhanVienBanVe) {
+		this.nhanVienBanVe = nhanVienBanVe;
+	}
+	 
+	 
+
+		/*
+		 * @OneToMany(mappedBy = "nhanVienLaiXe", fetch = FetchType.EAGER) private
+		 * List<Xe> laiXes;
+		 */
+	 
+	 
+}

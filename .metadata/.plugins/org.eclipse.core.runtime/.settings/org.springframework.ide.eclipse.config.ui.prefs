@@ -1,0 +1,12 @@
+//com.springsource.config.ui.prefs.activePageIndex\:/BOOKINGTOUR/src/main/webapp/WEB-INF/configs/spring-config-hibernate.xml=<?xml version\="1.0" encoding\="UTF-8"?>\r\n<activePage index\="0"/>
+//com.springsource.config.ui.prefs.activePageIndex\:/BOOKINGTOUR/src/main/webapp/WEB-INF/configs/spring-config-mvc.xml=<?xml version\="1.0" encoding\="UTF-8"?>\r\n<activePage index\="0"/>
+//com.springsource.config.ui.prefs.activePageIndex\:/BOOKINGTOUR/src/main/webapp/WEB-INF/configs/spring_config_bean.xml=<?xml version\="1.0" encoding\="UTF-8"?>\r\n<activePage index\="0"/>
+//com.springsource.config.ui.prefs.activePageIndex\:/BOOKINGTOUR/src/main/webapp/WEB-INF/configs/spring_config_interceptor.xml=<?xml version\="1.0" encoding\="UTF-8"?>\r\n<activePage index\="0"/>
+//com.springsource.config.ui.prefs.activePageIndex\:/BOOKINGTOUR/src/main/webapp/WEB-INF/configs/spring_config_uploadfile.xml=<?xml version\="1.0" encoding\="UTF-8"?>\r\n<activePage index\="0"/>
+//com.springsource.config.ui.prefs.activePageIndex\:/PTITHCMS1L1/src/main/webapp/WEB-INF/configs/spring-config-mvc.xml=<?xml version\="1.0" encoding\="UTF-8"?>\r\n<activePage index\="0"/>
+//com.springsource.config.ui.prefs.activePageIndex\:/QLNX/src/main/webapp/WEB-INF/configs/spring-config-hibernate.xml=<?xml version\="1.0" encoding\="UTF-8"?>\r\n<activePage index\="0"/>
+//com.springsource.config.ui.prefs.activePageIndex\:/QLXB/src/main/webapp/WEB-INF/configs/spring-config-hibernate.xml=<?xml version\="1.0" encoding\="UTF-8"?>\r\n<activePage index\="0"/>
+//com.springsource.config.ui.prefs.activePageIndex\:/QLXB/src/main/webapp/WEB-INF/configs/spring-config-mvc.xml=<?xml version\="1.0" encoding\="UTF-8"?>\r\n<activePage index\="0"/>
+//com.springsource.config.ui.prefs.activePageIndex\:/QLXB_31/src/main/webapp/WEB-INF/configs/spring-config-hibernate.xml=<?xml version\="1.0" encoding\="UTF-8"?>\r\n<activePage index\="0"/>
+//com.springsource.config.ui.prefs.activePageIndex\:/QLXB_31/src/main/webapp/WEB-INF/configs/spring-config-mvc.xml=<?xml version\="1.0" encoding\="UTF-8"?>\r\n<activePage index\="0"/>
+eclipse.preferences.version=1

@@ -1,0 +1,184 @@
+package BOOKINGTOUR.controller;
+
+import java.util.Iterator;
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.transaction.Transactional;
+
+import org.hibernate.Query;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+
+import BOOKINGTOUR.entity.BookingTour;
+import BOOKINGTOUR.entity.CTPhongLuuTru;
+import BOOKINGTOUR.entity.LoaiTour;
+import BOOKINGTOUR.entity.NoiLuuTru;
+import BOOKINGTOUR.entity.Tour;
+
+@Transactional
+@Controller
+public class dattourController {
+	@Autowired
+    SessionFactory factory;
+	@RequestMapping("dsdattour")
+	public String dsdattour(HttpServletRequest request,ModelMap model,@ModelAttribute("message") String message) {
+		model.addAttribute("bookingtours",this.geBookingTours());
+		model.addAttribute("message", message);
+		return "dattour/dsdattour";
+	}
+	@RequestMapping(value="themdattour")
+	public String themdattour(HttpServletRequest request,ModelMap model) {
+		model.addAttribute("bookingtour", new BookingTour());
+		model.addAttribute("loaitours",gettLoaiTours());
+		model.addAttribute("tours", getTours());
+		return"dattour/themdattour";
+	}
+	
+	@RequestMapping(value="insertdattour", method = RequestMethod.POST) 
+	public String insertdattour(@ModelAttribute("bookingtour") BookingTour bookingtour,ModelMap model) {
+		
+		System.out.println(bookingtour.gettGBD());
+		System.out.println(bookingtour.gettGKT());
+		System.out.println(bookingtour.getTour1().getId());
+		/*
+		 * bookingtour.setTour1(searchTour(bookingtour.getTour1().getId()));
+		 */
+
+		
+		Session session = factory.openSession();
+			Transaction t = session.beginTransaction();
+			try {
+				session.save(bookingtour);
+				t.commit();
+				System.out.println(bookingtour.getId());
+				model.addAttribute("message", 1);
+			} catch (Exception e) {
+				t.rollback();
+				model.addAttribute("message", 2);
+				
+			} finally {
+				session.close();
+			}
+			
+			model.addAttribute("bookingtours",this.geBookingTours());
+		
+			return "dattour/themdattour";
+	}
+	
+	@RequestMapping(value="suadattour/{id}")
+	public String suadiemdulich(ModelMap model ,@PathVariable int id) {
+		model.addAttribute("bookingtour", searchbBookingTour(id));
+		model.addAttribute("loaitours",gettLoaiTours());
+		model.addAttribute("tours", getTours());
+		return"dattour/suadattour";
+	}
+	@RequestMapping(value="updatetour", method = RequestMethod.POST) 
+	public String editdiemluutru(@ModelAttribute("bookingtour") BookingTour bookingtour,ModelMap model) {
+		
+		Session session = factory.openSession();
+			Transaction t = session.beginTransaction();
+			try {
+				session.update(bookingtour);
+				t.commit();
+				model.addAttribute("message", 1);
+			} catch (Exception e) {
+				t.rollback();
+				model.addAttribute("message", 2);
+				
+			} finally {
+				session.close();
+			}
+			model.addAttribute("bookingtour", bookingtour);
+			model.addAttribute("loaitours",gettLoaiTours());
+			model.addAttribute("tours", getTours());
+		return "dattour/suadattour";
+	}
+	
+	@RequestMapping(value="xoadattour/{id}")
+	public String xoadiemluutru(ModelMap model ,@PathVariable int id) {
+	
+	
+	
+	
+		Session session = factory.openSession();
+		Transaction t = session.beginTransaction();
+		try {
+			 
+			
+			String hql = "delete from BookingTour where id= :id";
+			Query query = session.createQuery(hql);
+			
+			query.setParameter("id", id);
+			System.out.println(query.executeUpdate());
+			t.commit();
+			model.addAttribute("message", 1);
+		} catch (Exception e) {
+			t.rollback();
+			model.addAttribute("message", 2);
+			
+		} finally {
+			session.close();
+		}
+		
+		return"redirect:/dsdattour.htm";
+	}
+	
+	
+	@RequestMapping(value="dsdatphong/{id}")
+	public String dsdatphong(ModelMap model ,@PathVariable int id,@ModelAttribute("message") String message) {
+		BookingTour bookingTour= this.searchbBookingTour(id);
+		model.addAttribute("message", message);
+		model.addAttribute("idBK",id);
+		model.addAttribute("bookingtour",bookingTour);
+		
+	
+		model.addAttribute("ctphongluutrus",bookingTour);
+		return"dattour/dsdatphong";
+	}
+	
+	public List<BookingTour> geBookingTours() {
+		Session session = factory.getCurrentSession();
+		String hql = "FROM BookingTour";
+		List<BookingTour> bookingTours = session.createQuery(hql).list();
+		return  bookingTours;
+	}
+	public List<Tour> getTours() {
+		Session session = factory.getCurrentSession();
+		String hql = "FROM Tour";
+		List<Tour> tous = session.createQuery(hql).list();
+		return  tous;
+	}
+	public List<LoaiTour> gettLoaiTours() {
+		Session session = factory.getCurrentSession();
+		String hql = "FROM LoaiTour";
+		List<LoaiTour> loaiTours = session.createQuery(hql).list();
+		return  loaiTours;
+	}
+	
+	public Tour searchTour(int id) {
+		Session session = factory.getCurrentSession();
+		String hql = "FROM Tour WHERE id = :id";
+		Query query = session.createQuery(hql);
+		query.setParameter("id", id);
+		if(query.list().size()==0) return null;
+		return (Tour) query.list().get(0);
+	}
+	
+	public BookingTour searchbBookingTour(int id) {
+		Session session = factory.getCurrentSession();
+		String hql = "FROM BookingTour WHERE id = :id";
+		Query query = session.createQuery(hql);
+		query.setParameter("id", id);
+		if(query.list().size()==0) return null;
+		return (BookingTour) query.list().get(0);
+	}
+}

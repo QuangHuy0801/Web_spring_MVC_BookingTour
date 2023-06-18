@@ -1,0 +1,248 @@
+package BOOKINGTOUR.controller;
+
+import java.io.File;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+
+import javax.servlet.ServletRequest;
+import javax.servlet.http.HttpServletRequest;
+import javax.transaction.Transactional;
+
+import org.hibernate.Query;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
+
+import BOOKINGTOUR.bean.UploadFile;
+import BOOKINGTOUR.entity.BookingTour;
+import BOOKINGTOUR.entity.DiemDuLich;
+import BOOKINGTOUR.entity.NhanVien;
+import BOOKINGTOUR.entity.TaiKhoan;
+
+
+
+@Transactional
+@Controller
+public class diemdulichController {
+	@Autowired
+    SessionFactory factory;
+	@Autowired
+	UploadFile baseUploadFile;
+	@RequestMapping("diemdulich")
+	public String diemdulich(HttpServletRequest request,ModelMap model,@RequestParam(defaultValue = "0") int page,@ModelAttribute("message") String message,@RequestParam(defaultValue = "") String timkiem) {
+		int pageSize = 6;
+		int totalUsers = getSize();
+		List<DiemDuLich> diemdulich = this.getDiemDuLich(page,pageSize,timkiem);
+	    int totalPages = (int) Math.ceil((double) totalUsers / pageSize);
+	    if(totalPages==0) {
+			totalPages=1;
+		}
+	    model.addAttribute("offset", page * pageSize);
+	    model.addAttribute("totalPages", totalPages);
+	    model.addAttribute("currentPage", page);
+		
+		model.addAttribute("diemDuLichs",diemdulich);
+		model.addAttribute("message", message);
+		return "diemdulich/dsdiemdulich";
+	}
+	
+	@RequestMapping(value="themdiemdulich")
+	public String themdiemdulich(HttpServletRequest request,ModelMap model) {
+		model.addAttribute("diemDuLich1", new DiemDuLich());
+		model.addAttribute("diemDuLichs",getListDiemDuLich());
+		return"diemdulich/themdiemdulich";
+	}
+	
+	@RequestMapping(value="insertDiemDuLich", method = RequestMethod.POST) 
+	public String insertdiemdulich(@RequestParam("photo") MultipartFile photo,HttpServletRequest request,@ModelAttribute("diemDuLich1") DiemDuLich diemDuLich,ModelMap model, BindingResult errors) {
+		if (diemDuLich.getTen().trim().length() == 0) {
+			errors.rejectValue("ten", "diemDuLich", "Vui lòng nhập tên điểm du lịch !");
+		}
+		else if (diemDuLich.getDiaChi().trim().length() == 0) {
+			errors.rejectValue("diaChi", "diemDuLich", "Vui lòng nhập tên địa chỉ !");
+		}
+		else {
+		
+		if(checkTenDiemDuLichTrung(diemDuLich.getTen())==1) {
+			errors.rejectValue("ten", "diemDuLich", "Tên địa điểm đã bị trùng !");
+			model.addAttribute("diemDuLichs",getListDiemDuLich());
+			System.out.println(3);
+			return "diemdulich/themdiemdulich";
+		}
+		
+		diemDuLich.setMoTa( request.getParameter("moTa"));
+		if (photo.isEmpty()) {
+			diemDuLich.setHinhAnh(null);
+		} else {
+		
+		String date =LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyMMddHHmmss-"));
+		String filename =date+photo.getOriginalFilename();
+		String photoPath =baseUploadFile.getBasePath()+ File.separator +filename;
+		photo.transferTo(new File(photoPath));
+		}
+		
+		Session session = factory.openSession();
+			Transaction t = session.beginTransaction();
+			try {
+				session.save(diemDuLich);
+				t.commit();
+				System.out.println(diemDuLich.getId());
+				model.addAttribute("message", 1);
+			} catch (Exception e) {
+				t.rollback();
+				model.addAttribute("message", 2);
+				
+			} finally {
+				session.close();
+			}}
+		
+			model.addAttribute("diemDuLichs",getListDiemDuLich());
+		return "diemdulich/themdiemdulich";
+	}
+	
+	
+	@RequestMapping(value="suadiemdulich/{id}")
+	public String suadiemdulich(ModelMap model ,@PathVariable int id) {
+		DiemDuLich diemDuLich1 =new DiemDuLich();
+		diemDuLich1.setId(id);
+		model.addAttribute("diemDuLich1", diemDuLich1);
+		model.addAttribute("diemDuLich",this.searchDiemDuLich(id));
+		model.addAttribute("diemDuLichs",getListDiemDuLich());
+		return"diemdulich/suadiemdulich";
+	}
+	@RequestMapping(value="suadiemdulich/update", method = RequestMethod.POST) 
+	public String editdiemdulich(@ModelAttribute("diemDuLich1") DiemDuLich diemDuLich,ModelMap model) {
+		System.out.println(diemDuLich.getId());
+		System.out.println(diemDuLich.getTen());
+		System.out.println(diemDuLich.getDiaChi());
+		System.out.println(diemDuLich.getMoTa());
+		Session session = factory.openSession();
+			Transaction t = session.beginTransaction();
+			try {
+				session.update(diemDuLich);
+				t.commit();
+				model.addAttribute("message", 1);
+			} catch (Exception e) {
+				t.rollback();
+				model.addAttribute("message", 2);
+				
+			} finally {
+				session.close();
+			}
+			model.addAttribute("diemDuLich1", new DiemDuLich());
+			model.addAttribute("diemDuLich",diemDuLich);
+			model.addAttribute("diemDuLichs",getListDiemDuLich());
+		return "diemdulich/suadiemdulich";
+	}
+	
+	@RequestMapping(value="xoadiemdulich/{id}")
+	public String xoadiemdulich(ModelMap model ,@PathVariable int id) {
+		/* DiemDuLich diemDuLich = searchDiemDuLich(id); */
+
+		Session session = factory.openSession();
+		Transaction t = session.beginTransaction();
+		try {
+			/* session.delete(diemDuLich); */
+			
+			String hql = "delete from DiemDuLich where id=:id";
+
+			
+			Query query1 = session.createQuery(hql);
+			query1.setParameter("id", id);
+			int result1 = query1.executeUpdate();
+
+			t.commit();
+			model.addAttribute("message", 1);
+		} catch (Exception e) {
+			t.rollback();
+			model.addAttribute("message", 2);
+			
+		} finally {
+			session.close();
+		}
+		
+		return"redirect:/diemdulich.htm";
+	}
+	
+	
+	
+	public List<DiemDuLich> getListDiemDuLich() {
+		Session session = factory.getCurrentSession();
+		String hql = "FROM DiemDuLich";
+		List<DiemDuLich> diemDuLich = session.createQuery(hql).list();
+		return  diemDuLich;
+	}
+	
+	public DiemDuLich searchDiemDuLich(int id) {
+		Session session = factory.getCurrentSession();
+		String hql = "FROM DiemDuLich WHERE id = :id";
+		Query query = session.createQuery(hql);
+		query.setParameter("id", id);
+		if(query.list().size()==0) return null;
+		return (DiemDuLich) query.list().get(0);
+	}
+	
+	private int checkTenDiemDuLichTrung( String ten) {
+		Session session = factory.getCurrentSession();
+		String hql = "FROM DiemDuLich where ten = :ten";
+		Query query = session.createQuery(hql);
+		query.setParameter("ten", ten);
+		List<DiemDuLich> list = query.list();
+		if(list.size() == 0) return 0;
+		return 1;
+	}
+	
+	public int  getSize() {
+		Session session = factory.getCurrentSession();
+		String hql = "FROM DiemDuLich";
+		Query query = session.createQuery(hql);
+		List<DiemDuLich> list = query.list();
+
+		return list.size();
+	}
+	public List<DiemDuLich> getDiemDuLich(int page, int pageSize) {
+		Session session = factory.getCurrentSession();
+		String hql = "FROM DiemDuLich";
+		Query query = session.createQuery(hql);
+		int offset = page * pageSize;
+		List<DiemDuLich> list = query.setFirstResult(offset).setMaxResults(pageSize).list();
+
+		return list;
+	}
+	public List<DiemDuLich> getDiemDuLich(int page, int pageSize, String ten) {
+		Session session = factory.getCurrentSession();
+		String hql;
+		Query query;
+		List<DiemDuLich> list;
+		if (ten.length() == 0 )
+		{
+			hql ="FROM DiemDuLich t ORDER BY t.id DESC";
+			query = session.createQuery(hql);
+			int offset = page * pageSize;
+			list = query.setFirstResult(offset).setMaxResults(pageSize).list();
+		} else
+		{
+			hql ="FROM DiemDuLich t where t.ten LIKE CONCAT( '%' ,:ten, '%') ORDER BY t.id DESC";
+			query = session.createQuery(hql);
+			int offset = page * pageSize;
+			query.setParameter("ten", ten);
+			list = query.setFirstResult(offset).setMaxResults(pageSize).list();
+		}
+		return list;
+	}
+	
+}
+
+
+

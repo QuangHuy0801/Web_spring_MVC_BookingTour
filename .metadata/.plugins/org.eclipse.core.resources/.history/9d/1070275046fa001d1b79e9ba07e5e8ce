@@ -1,0 +1,39 @@
+package BOOKINGTOUR.controller;
+
+import java.text.SimpleDateFormat;
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.transaction.Transactional;
+
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import BOOKINGTOUR.entity.DiemDuLich;
+import BOOKINGTOUR.entity.KhuyenMai;
+
+@Transactional
+@Controller
+public class dotkhuyenmaiController {
+	SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+	@Autowired
+    SessionFactory factory;
+	@RequestMapping("dsdotkhuyenmai")
+	public String dsdotkhuyenmai(HttpServletRequest request,ModelMap model,@ModelAttribute("message") String message) {
+		model.addAttribute("diemDuLichs",getKhuyenMais());
+		model.addAttribute("message", message);
+		return "dotkhuyenmai/dsdotkhuyenmai";
+	}
+	
+	public List<KhuyenMai> getKhuyenMais() {
+		Session session = factory.getCurrentSession();
+		String hql = "FROM KhuyenMai";
+		List<KhuyenMai> khuyenmai = session.createQuery(hql).list();
+		return  khuyenmai;
+	}
+}
